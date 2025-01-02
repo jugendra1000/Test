@@ -14,10 +14,22 @@ app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, './public/signup.html'));
 })
 
-app.post('/signup', (req, res) => {
-    const { name, email, password, phone } = req.body;
-    res.json(name, email, password, phone);
-})
+app.post('/signup', async (req, res) => {
+    try {
+        const { name, email, password, phone } = req.body;
+        const userExist = await userModel.findOne({ email });
+
+        if (userExist) {
+            res.send({ message: "User Exists" });
+        }
+        const newUser = new userModel({ name, email, password, phone });
+        await newUser.save();
+        res.send({ message: "User Created Successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server Error" });
+    }
+});
 
 const PORT = 8000;
 app.listen(PORT, () => {
